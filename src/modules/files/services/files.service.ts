@@ -1,36 +1,90 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
-import { CreateFileDto } from '../dto/create-file.dto';
-import { UpdateFileDto } from '../dto/update-file.dto';
+import { File } from '../entities/file.entity';
+import { StorageService } from 'src/shared/storage/services/storage.service';
+import { CreateFileDbDto } from '../dto/create-file-db.dto';
+import { UpdateFileDbDto } from '../dto/update-file-db.dto';
+import { CreateFileS3Dto } from '../dto/create-file-s3.dto';
 
 @Injectable()
 export class FilesService {
-  create(reqData: any) {
-    // const dbFileData = {
-    //   name: reqData.body.name,
-    // };
+  constructor(
+    private storageService: StorageService,
+    @InjectRepository(File) private fileRepository: Repository<File>,
+  ) {}
 
-    const s3FileData = {
-      originalname: reqData.file.originalname,
-      mimetype: reqData.file.mimetype,
-      buffer: reqData.file.buffer,
+  async create(reqData: CreateFileDbDto, reqFile: CreateFileS3Dto) {
+    const fileSavedS3 = await this.storageService.uploadFile(reqFile);
+
+    const fileMimetype = reqFile.mimetype.split('/')[1];
+    const fileUrl = fileSavedS3.Location;
+    const fileName = reqData.name;
+    const userId = parseInt(reqData.userId);
+    if (userId === NaN)
+      throw new NotFoundException(`The user ID field is not a number`);
+
+    const dbFileData = {
+      userId: userId,
+      name: fileName,
+      typeFile: fileMimetype,
+      urlFile: fileUrl,
     };
-    return s3FileData;
+
+    const newFileDb = await this.fileRepository.create(dbFileData);
+    const fileSavedDb = await this.fileRepository.save(newFileDb);
+
+    return fileSavedDb;
   }
 
-  findAll() {
-    return `This action returns all files`;
+  async findAll() {
+    const files = await this.fileRepository.find();
+    return files;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} file`;
+  async findOne(fileId: number) {
+    const file = await this.fileRepository.findOneBy({ id: fileId });
+
+    if (!file) {
+      throw new NotFoundException(`File with id: ${fileId} not found`);
+    }
+
+    return file;
   }
 
-  update(id: number, updateFileDto: any) {
-    return `This action updates a #${id} file`;
+  async findByName(fileName: string) {
+    const file = await this.fileRepository.findOneBy({ name: fileName });
+
+    if (!file) {
+      throw new NotFoundException(`File with name: "${fileName}" not found`);
+    }
+
+    return file;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} file`;
+  async downloadFile(fileName: string) {
+    console.log(fileName);
+    // const getFileName = fileName.split('.')[0];
+    // // const getFileExtension = fileName.split('.')[fileName.length - 1];
+    // const file = await this.fileRepository.findOneBy({
+    //   name: getFileName,
+    //   // typeFile: getFileExtension,
+    // });
+
+    // if (!file) {
+    //   throw new NotFoundException(`File with name: ${fileName} not found`);
+    // }
+
+    return 'hola';
+  }
+
+  async update(id: number, fileData: UpdateFileDbDto) {
+    const file = await this.findOne(id);
+
+    const newFile = await this.fileRepository.merge(file, fileData);
+    const fileUpdated = await this.fileRepository.save(newFile);
+
+    return fileUpdated;
   }
 }

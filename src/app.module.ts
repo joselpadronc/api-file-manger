@@ -6,6 +6,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { FilesModule } from './modules/files/files.module';
 import { DatabaseModule } from './shared/database/database.module';
+import { StorageModule } from './shared/storage/storage.module';
 import config from './shared/config';
 
 @Module({
@@ -19,6 +20,7 @@ import config from './shared/config';
     FilesModule,
     AuthModule,
     DatabaseModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

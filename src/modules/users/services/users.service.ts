@@ -23,7 +23,9 @@ export class UsersService {
     newUser.password = hashPassword;
 
     try {
-      return await this.userRepository.save(newUser);
+      const userSaved = await this.userRepository.save(newUser);
+      delete userSaved.password;
+      return userSaved;
     } catch (err) {
       if (err.code === 'ER_DUP_ENTRY') {
         throw new HttpException(
@@ -57,7 +59,6 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with email: ${userEmail} not found`);
     }
-    delete user.password;
     return user;
   }
 

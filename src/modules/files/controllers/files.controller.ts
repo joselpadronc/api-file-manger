@@ -3,45 +3,57 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   UseInterceptors,
   UploadedFile,
+  Query,
+  UseGuards,
+  Put,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
+
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FilesService } from '../services/files.service';
-import { CreateFileDto } from '../dto/create-file.dto';
-import { UpdateFileDto } from '../dto/update-file.dto';
+import { CreateFileDbDto } from '../dto/create-file-db.dto';
+import { CreateFileS3Dto } from '../dto/create-file-s3.dto';
+import { UpdateFileDbDto } from '../dto/update-file-db.dto';
 
+@ApiTags('Files')
+@UseGuards(AuthGuard('jwt'))
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('file'))
-  create(@UploadedFile() file, @Body() body: CreateFileDto) {
-    const data = { file, body };
-    return this.filesService.create(data);
+  create(@UploadedFile() file: CreateFileS3Dto, @Body() body: CreateFileDbDto) {
+    return this.filesService.create(body, file);
   }
 
   @Get()
-  findAll() {
+  getAll() {
     return this.filesService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.filesService.findOne(+id);
+  getById(@Param('id') id: number) {
+    return this.filesService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFileDto: UpdateFileDto) {
-    return this.filesService.update(+id, updateFileDto);
+  @Get(':name')
+  getByName(@Param('name') name: string) {
+    return name;
+    return this.filesService.findByName(name);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.filesService.remove(+id);
+  @Get('download')
+  findAndDownLoad(@Query('name') name: string) {
+    return name;
+  }
+
+  @Put(':id')
+  update(@Param('id') id: number, @Body() updateFileDto: UpdateFileDbDto) {
+    return this.filesService.update(id, updateFileDto);
   }
 }

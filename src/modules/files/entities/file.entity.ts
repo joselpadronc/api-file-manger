@@ -1,29 +1,24 @@
-import {
-  PrimaryGeneratedColumn,
-  Column,
-  Entity,
-  OneToMany,
-  JoinColumn,
-} from 'typeorm';
+import { PrimaryGeneratedColumn, Column, Entity } from 'typeorm';
 import { IsNotEmpty } from 'class-validator';
-
-import { User } from 'src/modules/users/entities/user.entity';
 
 @Entity({ name: 'files' })
 export class File {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'name', type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   @IsNotEmpty({ message: 'The name field is required' })
   name: string;
 
-  @OneToMany(() => User, (user) => user.id)
-  @JoinColumn()
-  @IsNotEmpty({ message: 'The userId field is required' })
-  userId: string;
+  @Column({ type: 'varchar', length: 255 })
+  @IsNotEmpty({ message: 'The typeFile field is required' })
+  typeFile: string;
 
-  @Column({ name: 'url_file', type: 'varchar' })
+  @Column({ type: 'varchar' })
   @IsNotEmpty({ message: 'The urlFile field is required' })
   urlFile: string;
+
+  @Column({ type: 'integer' })
+  @IsNotEmpty({ message: 'The userId field is required' })
+  userId: number;
 }
