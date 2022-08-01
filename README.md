@@ -8,6 +8,18 @@ API REST with nest.js for managing files stored in AWS S3 and connected with a s
 $ npm install
 ```
 
+## Set Environment Variables
+
+- Create file with name ``` .env ```
+- Add the following content
+```
+  S3_Key=AKIAY74DF3JTFUGFP5OT
+  S3_SECRET=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
+  S3_BUCKET=aluxion-testing
+
+  JWT_KEY=secret
+```
+
 ## Running the app
 
 ```bash
