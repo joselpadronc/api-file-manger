@@ -3,6 +3,7 @@ import { ConfigType } from '@nestjs/config';
 import * as AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import config from 'src/shared/config';
+import { Response } from 'express';
 
 @Injectable()
 export class StorageService {
@@ -36,7 +37,7 @@ export class StorageService {
     }
   }
 
-  async downloadFile(fileName: string) {
+  async downloadFile(fileName: string, res: Response) {
     const params = {
       Bucket: this.AWS_S3_BUCKET,
       Key: fileName,
@@ -45,7 +46,7 @@ export class StorageService {
     try {
       const s3Response = await this.s3.getObject(params).createReadStream();
 
-      return s3Response;
+      return s3Response.pipe(res);
     } catch (e) {
       console.log(e);
     }
