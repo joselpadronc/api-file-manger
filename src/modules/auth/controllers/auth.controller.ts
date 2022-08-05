@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request, Body } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from '../services/auth.service';
@@ -11,6 +11,12 @@ export class AuthController {
   @UseGuards(AuthGuard('local'))
   @Post('login')
   async login(@Request() request) {
+    console.log(request);
     return this.authService.genereteJwt(request.user);
+  }
+
+  @Post('forgotPassword')
+  async forgotPassword(@Body() body) {
+    return this.authService.genereteJwt(body);
   }
 }
